@@ -50,6 +50,12 @@ textarea{resize:vertical}
 .login-card .l-foot{margin-top:22px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink3)}
 .login-card .l-foot button{font-size:12px;color:var(--brand);font-weight:700}
 .login-card .l-foot button:hover{text-decoration:underline}
+.l-help{margin-top:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:10px 12px;text-align:left;font-size:12px;color:#eaf6f3}
+.lh-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.lh-t{white-space:nowrap;color:#bfe8e2}
+.lh-url{flex:1;font-family:ui-monospace,Consolas,monospace;color:#a7f3d0;word-break:break-all;font-size:11px;line-height:1.5}
+.lh-copy{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;font-weight:700}
+.lh-copy:hover{background:rgba(255,255,255,.3)}
 .passbook-rows{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0 6px;max-height:320px;overflow-y:auto}
 .passbook-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px}
 .passbook-row b{font-size:16px;letter-spacing:2px;font-family:ui-monospace,Consolas,monospace;color:var(--brand-d)}
@@ -261,7 +267,7 @@ textarea{resize:vertical}
 @keyframes pop{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1);opacity:1}}
 
 /* ===== Toast ===== */
-#toast{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{background:#12312c;color:#eaf6f3;padding:9px 18px;border-radius:10px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:tin .25s ease;max-width:80vw}
 .toast.err{background:#7f1d1d}
 .toast.ok{background:#14532d}
@@ -427,8 +433,12 @@ textarea{resize:vertical}
     <button class="btn-login btn-trial" id="login-trial">游客试用（只读）</button>
     <div class="l-err" id="login-err"></div>
     <div class="l-foot">
-      <button id="login-passbook">📖 密码本</button>
+      <button id="login-help">📖 使用说明</button>
       <span>密码请向班主任索取</span>
+    </div>
+    <div class="l-help" id="login-help-box" style="display:none">
+      <div class="lh-row"><span class="lh-t">① 下载Chrome（语音必需）：</span><span class="lh-url" id="lh-url-1">https://www.google.cn/chrome/</span><button class="lh-copy" data-target="lh-url-1">复制</button></div>
+      <div class="lh-row"><span class="lh-t">② 打开网址：</span><span class="lh-url" id="lh-url-2">https://gzq306.github.io/DianMing/</span><button class="lh-copy" data-target="lh-url-2">复制</button></div>
     </div>
   </div>
 </div>
@@ -2499,13 +2509,13 @@ function settingsModal(){
   `;
 
   const vipHtml = isAdminMode() ? `
-    <div class="set-row"><label class="set-label">👑 VIP 口令管理</label><div class="hint">生成的口令发给用户，在“解锁VIP”弹窗输入口令即可激活（10元/每账户，一次激活永久使用）。游客试用每台电脑限 10 次。</div></div>
+    <div class="set-row"><label class="set-label">👑 生成双码（密码 + VIP口令）</label><div class="hint">点击生成一组：一个<b>登录密码</b> + 一个<b>VIP口令</b>，发给用户后：输入密码登录 → 输入口令激活，一次激活永久使用（15元/每账户）。游客试用每台电脑限 10 次。</div></div>
     <div style="display:flex;gap:8px;margin:10px 0">
-      <button class="btn btn-brand" id="vip-gen" style="flex:1">生成 10 个口令</button>
-      <button class="btn btn-ghost" id="vip-copy" style="flex:1">复制口令</button>
+      <button class="btn btn-brand" id="vip-gen" style="flex:1">生成一组双码</button>
+      <button class="btn btn-ghost" id="vip-copy" style="flex:1">复制双码</button>
     </div>
-    <textarea id="vip-codes" class="inp" style="width:100%;height:170px;font-family:monospace;font-size:12px;line-height:1.7" readonly placeholder="点击「生成 10 个口令」"></textarea>
-    <div class="hint" style="margin-top:6px">注意：请通过微信发送口令给用户；口令生成后无需记录，验证逻辑内置在页面中。</div>
+    <textarea id="vip-codes" class="inp" style="width:100%;height:110px;font-family:monospace;font-size:12px;line-height:1.9" readonly placeholder="点击「生成一组双码」"></textarea>
+    <div class="hint" style="margin-top:6px">注意：请通过微信发送双码给用户；口令验证逻辑内置在页面中，无需记录。</div>
   ` : `<div class="hint">VIP 口令管理仅管理员账号可用</div>`;
   const syncHtml = isAdminMode() ? `
     <div class="set-row"><label class="set-label">🔗 云同步（跨设备）</label>
@@ -2532,7 +2542,7 @@ function settingsModal(){
           <button class="active" data-tab="base">🏫 基础设置</button>
           <button data-tab="voice">🎤 语音指令</button>
           <button data-tab="effect">🎉 点赞效果</button>
-          <button data-tab="vip" style="${isAdminMode()?'':'display:none'}">👑 VIP口令</button>
+          <button data-tab="vip" style="${isAdminMode()?'':'display:none'}">👑 生成双码</button>
 
         </div>
         <div id="pane-base" class="settings-pane">${baseHtml}</div>
@@ -2558,16 +2568,16 @@ function settingsModal(){
   });
   const genBtn = mask.querySelector('#vip-gen');
   if(genBtn) genBtn.onclick = () => {
-    const arr = [];
-    for(let i=0;i<10;i++) arr.push(`【口令${i+1}】${genVipCode()}`);
-    mask.querySelector('#vip-codes').value = arr.join('\n');
-    toast('已生成 10 个口令','ok');
+    const pw = PASSWORDS[Math.floor(Math.random() * PASSWORDS.length)];
+    const code = genVipCode();
+    mask.querySelector('#vip-codes').value = `【登录密码】${pw}\n【VIP口令】${code}`;
+    toast('已生成一组（登录密码 + VIP口令）','ok');
   };
   const cpBtn = mask.querySelector('#vip-copy');
   if(cpBtn) cpBtn.onclick = () => {
     const v = mask.querySelector('#vip-codes').value;
-    if(!v) return toast('请先生成口令','err');
-    navigator.clipboard.writeText(v).then(()=>toast('已复制全部口令','ok')).catch(()=>toast('复制失败，请手动选择','err'));
+    if(!v) return toast('请先生成双码','err');
+    navigator.clipboard.writeText(v).then(()=>toast('已复制双码','ok')).catch(()=>toast('复制失败，请手动选择','err'));
   };
 
   // 效果卡片选择
@@ -2719,7 +2729,7 @@ function activateVip(raw){
 function updateVipUI(){
   const vip = isVip();
   const b = $('#btn-vip'), badge = $('#trial-badge');
-  if(b) b.textContent = vip ? '👑 VIP已解锁' : '👑 解锁VIP';
+  if(b) b.textContent = vip ? '👑 永久VIP' : '👑 激活VIP';
   if(badge) badge.style.display = vip ? 'none' : 'inline-block';
   if(!vip && $('#stage').classList.contains('vip-locked')) $('#stage').classList.remove('vip-locked');
 }
@@ -2730,11 +2740,11 @@ function showVipModal(desc){
   mask.id = 'vip-modal';
   mask.innerHTML = `
     <div class="modal" style="max-width:440px">
-      <div class="modal-head">👑 解锁 VIP 功能<span class="close-x">✕</span></div>
+      <div class="modal-head">👑 激活 VIP<span class="close-x">✕</span></div>
       <div class="modal-body">
-        <div style="text-align:center;font-size:15px;font-weight:700;color:#1e293b;margin-bottom:6px">${desc?esc(desc)+'需要解锁VIP功能':'解锁VIP功能'}：<span style="color:#d97706">10元/每账户</span>，永久使用</div>
+        <div style="text-align:center;font-size:15px;font-weight:700;color:#1e293b;margin-bottom:6px">${desc?esc(desc)+'需要解锁VIP功能':'解锁VIP功能'}：<span style="color:#d97706">15元/每账户</span>，永久使用</div>
         <div style="font-size:12px;color:#475569;line-height:1.7;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:10px">
-          ① 微信扫码支付 10 元 → ② 扫码加微信 → ③ 发送“解锁VIP”获取口令 → ④ 输入口令激活
+          ① 微信扫码支付 15 元 → ② 扫码加微信 → ③ 发送“解锁VIP”获取口令 → ④ 输入口令激活
         </div>
         <div class="vip-qrs">
           <div class="vip-qr"><img id="vip-qr-pay" alt="支付码"><span class="qr-cap">支付码</span></div>
@@ -2904,7 +2914,25 @@ function initLogin(){
   };
   $('#login-btn').onclick = doLogin;
   $('#login-pass').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
-  $('#login-passbook').onclick = showPassbook;
+  $('#login-help').onclick = () => {
+    const b = $('#login-help-box');
+    b.style.display = b.style.display === 'none' ? 'block' : 'none';
+  };
+  document.querySelectorAll('.lh-copy').forEach(btn => btn.onclick = e => {
+    e.stopPropagation();
+    const url = document.getElementById(btn.dataset.target).textContent.trim();
+    const done = () => { btn.textContent = '✓ 已复制'; setTimeout(() => btn.textContent = '复制', 1500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+    } else fallbackCopy(url, done);
+  });
+  function fallbackCopy(txt, done){
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(err){ toast('复制失败，请手动复制','err'); }
+    ta.remove();
+  }
 }
 
 /* ===== 绑定 & 初始化 ===== */
@@ -2923,7 +2951,7 @@ function bindTop(){
   document.addEventListener('click', e => { if(!e.target.closest('.menu-wrap')) $('#menu-drop').classList.remove('open'); });
   $('#menu-drop').addEventListener('click', () => $('#menu-drop').classList.remove('open'));
   $('#btn-backup').onclick = backupModal;
-  $('#btn-vip').onclick = () => { if(isVip()){ toast('VIP 已解锁，永久使用','ok'); } else { showVipModal(); } };
+  $('#btn-vip').onclick = () => { if(isVip()){ toast('已是永久VIP，无需重复激活','ok'); } else { showVipModal(); } };
   $('#roll-btn').onclick = () => { rolling ? stopRoll() : startRoll(); };
   $('#voice-btn').onclick = toggleVoice;
   $('#opt-norepeat').onchange = e => { S.noRepeat = e.target.checked; save(); renderStats(); };
