@@ -47,15 +47,15 @@ textarea{resize:vertical}
 .login-card .btn-login{width:100%;padding:14px;font-size:16px;font-weight:800;border-radius:12px;background:linear-gradient(135deg,#0f766e,#115e59);color:#fff;transition:all .2s}
 .login-card .btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(15,118,110,.35)}
 .login-card .l-err{color:var(--danger);font-size:13px;min-height:20px;margin-top:10px;font-weight:600}
-.login-card .l-foot{margin-top:22px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink3)}
+.login-card .l-foot{margin-top:22px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink3);flex-wrap:wrap;gap:6px}
 .login-card .l-foot button{font-size:12px;color:var(--brand);font-weight:700}
 .login-card .l-foot button:hover{text-decoration:underline}
-.l-help{margin-top:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:10px 12px;text-align:left;font-size:12px;color:#eaf6f3}
-.lh-row{display:flex;align-items:center;gap:8px;margin:6px 0}
-.lh-t{white-space:nowrap;color:#bfe8e2}
-.lh-url{flex:1;font-family:ui-monospace,Consolas,monospace;color:#a7f3d0;word-break:break-all;font-size:11px;line-height:1.5}
-.lh-copy{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer;white-space:nowrap;font-weight:700}
-.lh-copy:hover{background:rgba(255,255,255,.3)}
+.lh-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+.lh-t{white-space:nowrap;color:var(--ink2);font-size:12.5px}
+.lh-url{flex:1;font-family:ui-monospace,Consolas,monospace;color:var(--brand-d);word-break:break-all;font-size:12.5px;line-height:1.5;background:#f1f5f9;border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+.lh-copy{background:var(--brand);border:none;color:#fff;border-radius:6px;padding:5px 14px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:700}
+.lh-copy:hover{background:var(--brand-d)}
+.lh-tip{font-size:11px;color:var(--ink3);margin-top:10px;line-height:1.6}
 .passbook-rows{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0 6px;max-height:320px;overflow-y:auto}
 .passbook-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px}
 .passbook-row b{font-size:16px;letter-spacing:2px;font-family:ui-monospace,Consolas,monospace;color:var(--brand-d)}
@@ -368,6 +368,13 @@ textarea{resize:vertical}
 }
 @media (max-width:640px){
   body{overflow-x:hidden}
+  .login-mask{overflow-y:auto;align-items:flex-start}
+  .login-card{padding:26px 20px;margin:auto}
+  .login-card .l-foot{flex-direction:column;justify-content:center;gap:4px}
+  .lh-row{flex-direction:column;align-items:stretch;gap:5px}
+  .lh-row .lh-t{white-space:normal}
+  .lh-url{font-size:12.5px;background:#f1f5f9;border-radius:6px;padding:7px 9px}
+  .lh-copy{align-self:flex-end}
   .topbar{padding:8px 12px}
   .topbar h1{font-size:14px}
   .cls-tabs button{padding:5px 10px;font-size:12.5px}
@@ -435,10 +442,6 @@ textarea{resize:vertical}
     <div class="l-foot">
       <button id="login-help">📖 使用说明</button>
       <span>密码请向班主任索取</span>
-    </div>
-    <div class="l-help" id="login-help-box" style="display:none">
-      <div class="lh-row"><span class="lh-t">① 下载Chrome（语音必需）：</span><span class="lh-url" id="lh-url-1">https://www.google.cn/chrome/</span><button class="lh-copy" data-target="lh-url-1">复制</button></div>
-      <div class="lh-row"><span class="lh-t">② 打开网址：</span><span class="lh-url" id="lh-url-2">https://gzq306.github.io/DianMing/</span><button class="lh-copy" data-target="lh-url-2">复制</button></div>
     </div>
   </div>
 </div>
@@ -2914,18 +2917,37 @@ function initLogin(){
   };
   $('#login-btn').onclick = doLogin;
   $('#login-pass').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
-  $('#login-help').onclick = () => {
-    const b = $('#login-help-box');
-    b.style.display = b.style.display === 'none' ? 'block' : 'none';
-  };
-  document.querySelectorAll('.lh-copy').forEach(btn => btn.onclick = e => {
-    e.stopPropagation();
-    const url = document.getElementById(btn.dataset.target).textContent.trim();
-    const done = () => { btn.textContent = '✓ 已复制'; setTimeout(() => btn.textContent = '复制', 1500); };
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
-    } else fallbackCopy(url, done);
-  });
+  $('#login-help').onclick = showLoginHelp;
+  function showLoginHelp(){
+    if(document.getElementById('help-modal')) return;
+    const mask = document.createElement('div');
+    mask.className = 'modal-mask';
+    mask.id = 'help-modal';
+    mask.style.zIndex = '1001';
+    mask.innerHTML = `
+      <div class="modal" style="max-width:460px">
+        <div class="modal-head">📖 使用说明<span class="close-x">✕</span></div>
+        <div class="modal-body">
+          <div class="lh-row"><span class="lh-t">① 下载Chrome（语音必需）：</span><span class="lh-url" id="lh-url-1">https://www.google.cn/chrome/</span><button class="lh-copy" data-target="lh-url-1">复制</button></div>
+          <div class="lh-row"><span class="lh-t">② 打开网址：</span><span class="lh-url" id="lh-url-2">https://gzq306.github.io/DianMing/</span><button class="lh-copy" data-target="lh-url-2">复制</button></div>
+          <div class="lh-tip">复制网址后，在 Chrome 浏览器粘贴打开即可正常使用。</div>
+        </div>
+      </div>`;
+    document.body.appendChild(mask);
+    mask.querySelector('.close-x').onclick = () => mask.remove();
+    mask.onclick = e => { if(e.target === mask) mask.remove(); };
+    bindHelpCopy(mask);
+  }
+  function bindHelpCopy(root){
+    root.querySelectorAll('.lh-copy').forEach(btn => btn.onclick = e => {
+      e.stopPropagation();
+      const url = document.getElementById(btn.dataset.target).textContent.trim();
+      const done = () => { btn.textContent = '✓ 已复制'; setTimeout(() => btn.textContent = '复制', 1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+      } else fallbackCopy(url, done);
+    });
+  }
   function fallbackCopy(txt, done){
     const ta = document.createElement('textarea');
     ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
